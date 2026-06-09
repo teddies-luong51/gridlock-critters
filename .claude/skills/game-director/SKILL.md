@@ -50,6 +50,20 @@ Always tell the user which phase you are resuming from.
 
 ---
 
+## Locked Design Decisions (do not re-ask the user about these)
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Input method** | Physical phone tilt (accelerometer) | Confirmed by user — makes tilt mechanic feel real |
+| **Camera / view** | 3D perspective, 45° angled (chess-board style) | Confirmed by user — board lean animation reads as physically real |
+| **Rendering** | Unity 3D (not 2D) | Required for perspective camera + board tilt animation |
+| **Tilt detection** | `Input.acceleration` — no permissions needed on iOS or Android | Verified against Unity docs |
+| **Editor testing** | Arrow keys fallback via `EditorTiltInput` | Allows dev testing without a phone |
+
+gameplay-dev must follow the `unity-implementation` skill which contains the full accelerometer + 3D camera + board tilt animator implementation.
+
+---
+
 ## Phase 1: Project Brief
 
 Collect only what is missing:
