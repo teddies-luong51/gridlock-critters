@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "level-wireframes",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "7890", "--directory", "_workspace"],
+      "port": 7890
+    }
+  ]
+}

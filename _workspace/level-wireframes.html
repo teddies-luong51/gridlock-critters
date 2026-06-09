@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gridlock Critters — Level Wireframes</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a1a2e;
+    font-family: 'Segoe UI', sans-serif;
+    color: #eee;
+    padding: 32px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    margin-bottom: 8px;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #aaa;
+    font-size: 13px;
+    margin-bottom: 40px;
+  }
+  .levels-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .level-card {
+    background: #16213e;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #0f3460;
+  }
+  .level-header {
+    margin-bottom: 16px;
+  }
+  .level-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .tag-introduce { background: #2ecc71; color: #000; }
+  .tag-reinforce { background: #3498db; color: #fff; }
+  .tag-combine   { background: #e67e22; color: #fff; }
+  .tag-spike     { background: #e74c3c; color: #fff; }
+
+  .level-title { font-size: 18px; font-weight: 700; color: #fff; }
+  .level-meta  { font-size: 12px; color: #888; margin-top: 2px; }
+
+  /* Board wrapper — provides space for gates on all edges */
+  .board-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+  }
+  .board-outer {
+    position: relative;
+    display: inline-block;
+  }
+
+  /* The grid itself */
+  .grid {
+    display: grid;
+    border: 3px solid #4a4a6a;
+    border-radius: 8px;
+    background: #0d1b2a;
+    position: relative;
+  }
+  .cell {
+    width: 64px;
+    height: 64px;
+    border: 1px solid #2a2a4a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Critter */
+  .critter {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    border: 2.5px solid rgba(255,255,255,0.25);
+    flex-direction: column;
+    gap: 2px;
+  }
+  .critter-face {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .critter-label {
+    font-size: 9px;
+    font-weight: 700;
+    opacity: 0.9;
+    letter-spacing: 0.5px;
+  }
+
+  /* Colors */
+  .c-red    { background: #e74c3c; box-shadow: 0 3px 8px rgba(231,76,60,0.5); }
+  .c-blue   { background: #3498db; box-shadow: 0 3px 8px rgba(52,152,219,0.5); }
+  .c-green  { background: #27ae60; box-shadow: 0 3px 8px rgba(39,174,96,0.5); }
+  .c-yellow { background: #f39c12; box-shadow: 0 3px 8px rgba(243,156,18,0.5); }
+  .c-purple { background: #9b59b6; box-shadow: 0 3px 8px rgba(155,89,182,0.5); }
+
+  /* Gates — positioned absolutely around the board */
+  .gate {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+  }
+  /* Gate sizes */
+  .gate-h { width: 44px; height: 22px; } /* horizontal (top/bottom) */
+  .gate-v { width: 22px; height: 44px; } /* vertical (left/right) */
+
+  .gate-red    { background: rgba(231,76,60,0.3);  border: 2px solid #e74c3c; color: #e74c3c; }
+  .gate-blue   { background: rgba(52,152,219,0.3); border: 2px solid #3498db; color: #3498db; }
+  .gate-green  { background: rgba(39,174,96,0.3);  border: 2px solid #27ae60; color: #27ae60; }
+  .gate-yellow { background: rgba(243,156,18,0.3); border: 2px solid #f39c12; color: #f39c12; }
+  .gate-purple { background: rgba(155,89,182,0.3); border: 2px solid #9b59b6; color: #9b59b6; }
+
+  /* Tilt arrows */
+  .tilt-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .arrow-btn {
+    width: 36px;
+    height: 36px;
+    background: #0f3460;
+    border: 2px solid #4a4a6a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .arrow-btn.active {
+    background: #e67e22;
+    border-color: #e67e22;
+  }
+
+  /* Solution */
+  .solution {
+    background: #0d1b2a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #aaa;
+    border-left: 3px solid #4a4a6a;
+  }
+  .solution strong { color: #fff; }
+  .sol-step {
+    display: inline-block;
+    background: #0f3460;
+    color: #7ec8e3;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 0 2px;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .teaches {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #888;
+    line-height: 1.5;
+  }
+  .teaches em { color: #f39c12; font-style: normal; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #aaa;
+  }
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+  }
+
+  /* Column/row labels */
+  .col-labels, .row-labels {
+    display: flex;
+    position: absolute;
+    color: #444;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  .info-badge {
+    background: #0f3460;
+    color: #7ec8e3;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎮 Gridlock Critters — Level Wireframes</h1>
+<p class="subtitle">Gameplay design mockups · Tilt the board to slide all critters into their matching-color gates</p>
+
+<div class="levels-grid">
+
+  <!-- LEVEL 1 -->
+  <div class="level-card">
+    <div class="level-header">
+      <div class="level-tag tag-introduce">INTRODUCE</div>
+      <div class="level-title">Level 1 — "Two Doors" <span class="info-badge">5×5 · 2 critters</span></div>
+      <div class="level-meta">Learn the core verb: tilt → slide → exit through matching gate</div>
+    </div>
+
+    <div class="board-wrapper">
+      <div class="board-outer" id="b1-outer">
+        <!-- Grid: 5 cols × 5 rows, cell=64px -->
+        <!-- Gates positioned via JS below -->
+        <div class="grid" id="b1" style="grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(5, 64px);">
+          <!-- Row 1 -->
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 2 -->
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 3 — R at col A (0), B at col E (4) -->
+          <div class="cell"><div class="critter c-red"><span class="critter-face">🐻</span><span class="critter-label">RED</span></div></div>
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <div class="cell"><div class="critter c-blue"><span class="critter-face">🐰</span><span class="critter-label">BLUE</span></div></div>
+          <!-- Row 4 -->
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 5 -->
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        </div>
+        <!-- Gates: Left edge row 3, Right edge row 3 -->
+        <!-- Left-3: top offset = 3*64 - 3 = border + (row-1)*64 + 10 -->
+        <div class="gate gate-v gate-red"    style="top:139px; left:-28px;">R</div>
+        <div class="gate gate-v gate-blue"   style="top:139px; right:-28px;">B</div>
+      </div>
+    </div>
+
+    <div class="tilt-arrows">
+      <div class="arrow-btn active">←</div>
+      <div class="arrow-btn">↑</div>
+      <div class="arrow-btn">↓</div>
+      <div class="arrow-btn active">→</div>
+    </div>
+
+    <div class="solution">
+      <strong>Solution:</strong>
+      <span class="sol-step">← Left</span> →
+      <span class="sol-step">→ Right</span>
+      <div class="teaches">
+        Both critters sit on their gate's row — one push each.
+        <em>The player discovers: "tilt toward your color."</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL 2 -->
+  <div class="level-card">
+    <div class="level-header">
+      <div class="level-tag tag-reinforce">REINFORCE</div>
+      <div class="level-title">Level 2 — "After You" <span class="info-badge">5×5 · 3 critters</span></div>
+      <div class="level-meta">Clear aligned critters first — one tilt can exit multiple pieces</div>
+    </div>
+
+    <div class="board-wrapper">
+      <div class="board-outer">
+        <div class="grid" style="grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(5, 64px);">
+          <!-- Row 1 — Y at col C (2) -->
+          <div class="cell"></div><div class="cell"></div>
+          <div class="cell"><div class="critter c-yellow"><span class="critter-face">🦊</span><span class="critter-label">YLW</span></div></div>
+          <div class="cell"></div><div class="cell"></div>
+          <!-- Row 2 --><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 3 --><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 4 --><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 5 — G at col C (2), R at col D (3) -->
+          <div class="cell"></div><div class="cell"></div>
+          <div class="cell"><div class="critter c-green"><span class="critter-face">🐸</span><span class="critter-label">GRN</span></div></div>
+          <div class="cell"><div class="critter c-red"><span class="critter-face">🐻</span><span class="critter-label">RED</span></div></div>
+          <div class="cell"></div>
+        </div>
+        <!-- Gates: Top-C=Yellow, Bottom-C=Green, Bottom-D=Red -->
+        <!-- Top-C: col C = index 2, left = 2*64 + 10 = 138, top = -28 -->
+        <div class="gate gate-h gate-yellow" style="top:-28px;  left:138px;">Y</div>
+        <div class="gate gate-h gate-green"  style="bottom:-28px; left:138px;">G</div>
+        <div class="gate gate-h gate-red"    style="bottom:-28px; left:202px;">R</div>
+      </div>
+    </div>
+
+    <div class="tilt-arrows">
+      <div class="arrow-btn">←</div>
+      <div class="arrow-btn">↑</div>
+      <div class="arrow-btn active">↓</div>
+      <div class="arrow-btn">→</div>
+    </div>
+
+    <div class="solution">
+      <strong>Solution:</strong>
+      <span class="sol-step">↓ Down</span> →
+      <span class="sol-step">↑ Up</span>
+      <div class="teaches">
+        Down exits Green + Red in one tilt (both already on their gate column).
+        Then Up sends Yellow to its top gate.
+        <em>Wrong first move (Up) yanks Yellow away before Green/Red can exit — then they're stranded.</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL 3 -->
+  <div class="level-card">
+    <div class="level-header">
+      <div class="level-tag tag-combine">COMBINE</div>
+      <div class="level-title">Level 3 — "Bank It First" <span class="info-badge">5×5 · 4 critters</span></div>
+      <div class="level-meta">The single-approach gate must be banked before vertical tilts disrupt its row</div>
+    </div>
+
+    <div class="board-wrapper">
+      <div class="board-outer">
+        <div class="grid" style="grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(5, 64px);">
+          <!-- Row 1 --><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 2 — Y at col A (0) -->
+          <div class="cell"><div class="critter c-yellow"><span class="critter-face">🦊</span><span class="critter-label">YLW</span></div></div>
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 3 --><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 4 --><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 5 — G A5, B B5, R C5 -->
+          <div class="cell"><div class="critter c-green"><span class="critter-face">🐸</span><span class="critter-label">GRN</span></div></div>
+          <div class="cell"><div class="critter c-blue"><span class="critter-face">🐰</span><span class="critter-label">BLU</span></div></div>
+          <div class="cell"><div class="critter c-red"><span class="critter-face">🐻</span><span class="critter-label">RED</span></div></div>
+          <div class="cell"></div><div class="cell"></div>
+        </div>
+        <!-- Gates: Left-2=Y, Bottom-A=G, Bottom-B=B, Bottom-C=R -->
+        <div class="gate gate-v gate-yellow" style="top:75px;   left:-28px;">Y</div>
+        <div class="gate gate-h gate-green"  style="bottom:-28px; left:10px;">G</div>
+        <div class="gate gate-h gate-blue"   style="bottom:-28px; left:74px;">B</div>
+        <div class="gate gate-h gate-red"    style="bottom:-28px; left:138px;">R</div>
+      </div>
+    </div>
+
+    <div class="tilt-arrows">
+      <div class="arrow-btn active">←</div>
+      <div class="arrow-btn">↑</div>
+      <div class="arrow-btn active">↓</div>
+      <div class="arrow-btn">→</div>
+    </div>
+
+    <div class="solution">
+      <strong>Solution:</strong>
+      <span class="sol-step">← Left</span> →
+      <span class="sol-step">↓ Down</span>
+      <div class="teaches">
+        Yellow's Left gate has only ONE approach — it must exit left before any vertical tilt scrambles its row.
+        <em>Doing Down first is the trap: Yellow slides to A4, loses row 2, and the board soft-locks.</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL 4 -->
+  <div class="level-card">
+    <div class="level-header">
+      <div class="level-tag tag-spike">SPIKE</div>
+      <div class="level-title">Level 4 — "The Hidden Hostage" <span class="info-badge">6×6 · 5 critters</span></div>
+      <div class="level-meta">A correct opener creates a new blocking relationship only visible mid-solve</div>
+    </div>
+
+    <div class="board-wrapper">
+      <div class="board-outer">
+        <!-- 6×6 grid, cell = 54px to fit card -->
+        <div class="grid" style="grid-template-columns: repeat(6, 54px); grid-template-rows: repeat(6, 54px);">
+          <!-- Row 1 — Y at col F (5) -->
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <div class="cell"><div class="critter c-yellow" style="width:40px;height:40px;font-size:9px;"><span class="critter-face" style="font-size:15px;">🦊</span><span class="critter-label">YLW</span></div></div>
+          <!-- Row 2 --><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 3 — P at col A (0) -->
+          <div class="cell"><div class="critter c-purple" style="width:40px;height:40px;font-size:9px;"><span class="critter-face" style="font-size:15px;">🦄</span><span class="critter-label">PRP</span></div></div>
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 4 --><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 5 — G at col A (0) -->
+          <div class="cell"><div class="critter c-green" style="width:40px;height:40px;font-size:9px;"><span class="critter-face" style="font-size:15px;">🐸</span><span class="critter-label">GRN</span></div></div>
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <!-- Row 6 — B at col A (0), R at col F (5) -->
+          <div class="cell"><div class="critter c-blue" style="width:40px;height:40px;font-size:9px;"><span class="critter-face" style="font-size:15px;">🐰</span><span class="critter-label">BLU</span></div></div>
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <div class="cell"><div class="critter c-red" style="width:40px;height:40px;font-size:9px;"><span class="critter-face" style="font-size:15px;">🐻</span><span class="critter-label">RED</span></div></div>
+        </div>
+        <!-- Gates: Top-F=Y, Left-3=P, Top-A=G, Bottom-A=B, Bottom-F=R -->
+        <!-- 6×6, cell=54px. Col A left=0, col F left=5*54=270. Row 3 top=2*54=108. -->
+        <div class="gate gate-h gate-yellow" style="width:38px;height:20px;top:-26px; left:272px; font-size:9px;">Y</div>
+        <div class="gate gate-v gate-purple" style="width:20px;height:38px;top:110px; left:-26px; font-size:9px;">P</div>
+        <div class="gate gate-h gate-green"  style="width:38px;height:20px;top:-26px; left:4px;   font-size:9px;">G</div>
+        <div class="gate gate-h gate-blue"   style="width:38px;height:20px;bottom:-26px; left:4px; font-size:9px;">B</div>
+        <div class="gate gate-h gate-red"    style="width:38px;height:20px;bottom:-26px; left:272px; font-size:9px;">R</div>
+      </div>
+    </div>
+
+    <div class="tilt-arrows">
+      <div class="arrow-btn active">←</div>
+      <div class="arrow-btn">↑</div>
+      <div class="arrow-btn">↓</div>
+      <div class="arrow-btn">→</div>
+    </div>
+
+    <div class="solution">
+      <strong>Opener:</strong>
+      <span class="sol-step">← Left</span> banks Purple instantly (it's already on row 3).
+      <div class="teaches">
+        <em>The reveal:</em> that same Left tilt drags Yellow from column F into column A —
+        where it now blocks Green from ever reaching its Top-A gate.
+        The player must re-plan mid-solve. Column A becomes a contested lane
+        that only clears once Yellow finds an alternative exit path.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer legend -->
+<div style="max-width:1100px;margin:32px auto 0;display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
+  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#888;">
+    <div style="width:20px;height:20px;border-radius:4px;background:#e74c3c;"></div> Red critter / gate
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#888;">
+    <div style="width:20px;height:20px;border-radius:4px;background:#3498db;"></div> Blue
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#888;">
+    <div style="width:20px;height:20px;border-radius:4px;background:#27ae60;"></div> Green
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#888;">
+    <div style="width:20px;height:20px;border-radius:4px;background:#f39c12;"></div> Yellow
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#888;">
+    <div style="width:20px;height:20px;border-radius:4px;background:#9b59b6;"></div> Purple
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#888;">
+    <div style="width:22px;height:14px;border-radius:3px;border:2px solid #e74c3c;background:rgba(231,76,60,0.2);"></div> Gate (edge exit)
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#888;">
+    <div style="width:28px;height:28px;border-radius:6px;background:#e67e22;display:flex;align-items:center;justify-content:center;font-size:14px;">←</div> Active tilt direction
+  </div>
+</div>
+
+</body>
+</html>
