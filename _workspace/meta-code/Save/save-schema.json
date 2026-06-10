@@ -1,0 +1,10 @@
+{
+  "schema_version": "gridlock_save_v1",
+  "fields": {
+    "completedLevels": "int[] — indices of completed levels (0-based)",
+    "lastPlayedLevel": "int — last level the player entered",
+    "totalPlayTime": "float — cumulative seconds in gameplay"
+  },
+  "storage": "PlayerPrefs JSON string under key: gridlock_save_v1",
+  "resume_logic": "GetResumeLevel() returns lowest index NOT in completedLevels"
+}
