@@ -1,21 +1,38 @@
 using System;
 using UnityEngine;
 
-/// <summary>Owns the high-level game state machine and broadcasts state changes to UI.</summary>
+/// <summary>High-level game states used by both gameplay and meta/UI systems.</summary>
+public enum GameState
+{
+    Boot,
+    MainMenu,
+    LevelSelect,
+    Playing,
+    Paused,
+    LevelComplete,
+    GameOver
+}
+
+/// <summary>
+/// Single authoritative game state machine. Broadcasts state transitions to interested
+/// systems, applies pause time-scale, and holds the live gameplay bridge references
+/// (ILevelManager / IBoardController) registered by gameplay components on Awake.
+/// (Merged from the former gameplay GameManager.)
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    /// <summary>Fires whenever the game state changes (new state passed).</summary>
+    /// <summary>Current high-level game state.</summary>
+    public GameState CurrentState { get; private set; } = GameState.Boot;
+
+    /// <summary>Fired whenever the state changes, with the new state.</summary>
     public event Action<GameState> OnStateChanged;
 
-    /// <summary>Current high-level game state.</summary>
-    public GameState State { get; private set; } = GameState.Boot;
-
-    /// <summary>The gameplay-side level manager, registered by gameplay-dev at startup.</summary>
+    /// <summary>The live gameplay level manager; set by LevelManager.Awake. Null outside gameplay scenes.</summary>
     public ILevelManager LevelManager { get; set; }
 
-    /// <summary>The gameplay-side board controller, registered by gameplay-dev at level load.</summary>
+    /// <summary>The live board controller; set by BoardController.Awake. Null outside gameplay scenes.</summary>
     public IBoardController BoardController { get; set; }
 
     private void Awake()
@@ -26,24 +43,20 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
+        Application.targetFrameRate = 60;
         DontDestroyOnLoad(gameObject);
     }
 
-    /// <summary>Transitions to a new state, applying time-scale for pause and notifying listeners.</summary>
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
+    /// <summary>Transitions to a new state, applying pause time-scale and notifying listeners.</summary>
     public void ChangeState(GameState newState)
     {
-        State = newState;
+        CurrentState = newState;
         Time.timeScale = newState == GameState.Paused ? 0f : 1f;
         OnStateChanged?.Invoke(newState);
     }
-}
-
-/// <summary>High-level game states.</summary>
-public enum GameState
-{
-    Boot,
-    LevelSelect,
-    Playing,
-    Paused,
-    LevelComplete
 }

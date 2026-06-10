@@ -26,7 +26,7 @@ public class PauseMenuController : MonoBehaviour
         {
             GameManager.Instance.OnStateChanged += HandleStateChanged;
         }
-        HandleStateChanged(GameManager.Instance != null ? GameManager.Instance.State : GameState.Boot);
+        HandleStateChanged(GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Boot);
     }
 
     private void OnDisable()

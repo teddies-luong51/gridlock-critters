@@ -7,7 +7,7 @@ using UnityEngine;
 /// Owns the logical board and runs the tilt pipeline: board lean -> resolve moves -> animate slides
 /// simultaneously -> exits -> win check. Blocks input while animating.
 /// </summary>
-public class BoardController : MonoBehaviour
+public class BoardController : MonoBehaviour, IBoardController
 {
     public static BoardController Instance { get; private set; }
 
@@ -36,6 +36,11 @@ public class BoardController : MonoBehaviour
     private readonly SlideResolver _resolver = new SlideResolver();
     private readonly List<CritterPiece> _activeCritters = new List<CritterPiece>();
 
+    // One-step (multi-step) undo: snapshots of grid + critter positions taken before each tilt.
+    private readonly Stack<CellState[,]> _undoStack = new Stack<CellState[,]>();
+    private readonly Stack<Dictionary<Vector2Int, CritterPiece>> _critterUndoStack =
+        new Stack<Dictionary<Vector2Int, CritterPiece>>();
+
     private bool _isAnimating;
 
     public bool IsAnimating => _isAnimating;
@@ -50,6 +55,9 @@ public class BoardController : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // Register with the canonical GameManager so the HUD can drive undo via IBoardController.
+        if (GameManager.Instance != null) GameManager.Instance.BoardController = this;
     }
 
     private void OnEnable()
@@ -125,6 +133,8 @@ public class BoardController : MonoBehaviour
             }
 
         _resolver.Configure(gateController, _arrowAt);
+        _undoStack.Clear();
+        _critterUndoStack.Clear();
         _isAnimating = false;
     }
 
@@ -152,7 +162,49 @@ public class BoardController : MonoBehaviour
     {
         if (_isAnimating) return;
         if (_grid == null) return;
+        SaveStateForUndo();
         StartCoroutine(TiltRoutine(dir));
+    }
+
+    /// <summary>Pushes a snapshot of the current grid and critter positions for one-step undo.</summary>
+    private void SaveStateForUndo()
+    {
+        if (_grid == null) return;
+        _undoStack.Push((CellState[,])_grid.Clone());
+        _critterUndoStack.Push(new Dictionary<Vector2Int, CritterPiece>(_critterAt));
+    }
+
+    /// <summary>
+    /// Reverts the board to the state before the last resolved tilt: restores the logical grid,
+    /// critter lookup, and re-renders surviving critters to their stored cells. No-op if empty.
+    /// </summary>
+    public void UndoLastMove()
+    {
+        if (_isAnimating) return;
+        if (_undoStack.Count == 0 || _critterUndoStack.Count == 0) return;
+
+        CellState[,] grid = _undoStack.Pop();
+        Dictionary<Vector2Int, CritterPiece> critters = _critterUndoStack.Pop();
+
+        _grid = grid;
+
+        _critterAt.Clear();
+        foreach (var kvp in critters)
+        {
+            CritterPiece critter = kvp.Value;
+            if (critter == null) continue;
+
+            Vector2Int cell = kvp.Key;
+            _critterAt[cell] = critter;
+            critter.SetGridPosition(cell);
+
+            // A critter that had exited may be inactive — bring it back for the undo.
+            critter.ResetVisual();
+            critter.transform.position = CellToWorld(cell);
+
+            if (!_activeCritters.Contains(critter))
+                _activeCritters.Add(critter);
+        }
     }
 
     private IEnumerator TiltRoutine(TiltDirection dir)
@@ -222,9 +274,10 @@ public class BoardController : MonoBehaviour
 
     private IEnumerator ExitRoutine(SlideMove m, TiltDirection dir, float worldSpeed)
     {
-        // Slide to the wall cell the critter exited from, then through the gate.
-        yield return m.critter.SlideTo(CellToWorld(m.from), worldSpeed);
-        yield return m.critter.SlideTo(ExitWorld(m.from, dir), worldSpeed);
+        // Slide along the actual path: to the last on-board cell before the gate, then through the
+        // gate using the exit direction (which may differ from `dir` due to an arrow redirect).
+        yield return m.critter.SlideTo(CellToWorld(m.exitFromCell), worldSpeed);
+        yield return m.critter.SlideTo(ExitWorld(m.exitFromCell, m.exitDir), worldSpeed);
         yield return m.critter.PlayExitAnimation();
         _activeCritters.Remove(m.critter);
     }

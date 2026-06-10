@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>Loads LevelData ScriptableObjects and instantiates the board, critters, gates, blockers and arrows.</summary>
-public class LevelManager : MonoBehaviour
+public class LevelManager : MonoBehaviour, ILevelManager
 {
     public static LevelManager Instance { get; private set; }
 
@@ -39,6 +39,9 @@ public class LevelManager : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // Register with the canonical GameManager so meta UI can drive levels via ILevelManager.
+        if (GameManager.Instance != null) GameManager.Instance.LevelManager = this;
     }
 
     private void OnEnable()
@@ -146,14 +149,17 @@ public class LevelManager : MonoBehaviour
             board.BuildBoard(data.gridWidth, data.gridHeight, critters, arrows, blockers, gateController);
 
         if (GameManager.Instance != null)
-            GameManager.Instance.ChangeState(GameManager.GameState.Playing);
+            GameManager.Instance.ChangeState(GameState.Playing);
     }
 
-    /// <summary>Reloads the current level from scratch (Retry).</summary>
-    public void RetryCurrent()
+    /// <summary>Reloads the current level from scratch (Retry). ILevelManager implementation.</summary>
+    public void ReloadCurrentLevel()
     {
         if (CurrentLevelIndex >= 0) LoadLevel(CurrentLevelIndex);
     }
+
+    /// <summary>Alias kept for existing gameplay callers.</summary>
+    public void RetryCurrent() => ReloadCurrentLevel();
 
     /// <summary>Loads the next level if one exists.</summary>
     public void LoadNext()

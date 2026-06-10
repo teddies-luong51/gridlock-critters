@@ -8,15 +8,31 @@ public struct SlideMove
     public Vector2Int   from;
     public Vector2Int   to;        // final cell (valid only when exits == false)
     public bool         exits;
-    public CritterColor exitColor; // color of the gate the critter exited through
+    public CritterColor exitColor;    // color of the gate the critter exited through
+    public Vector2Int   exitFromCell; // last on-board cell before the gate (valid only when exits)
+    public TiltDirection exitDir;     // travel direction at exit (may differ from tilt due to an arrow)
 
     public SlideMove(CritterPiece critter, Vector2Int from, Vector2Int to, bool exits, CritterColor exitColor)
     {
-        this.critter   = critter;
-        this.from      = from;
-        this.to        = to;
-        this.exits     = exits;
-        this.exitColor = exitColor;
+        this.critter      = critter;
+        this.from         = from;
+        this.to           = to;
+        this.exits        = exits;
+        this.exitColor    = exitColor;
+        this.exitFromCell = to;
+        this.exitDir      = default;
+    }
+
+    public SlideMove(CritterPiece critter, Vector2Int from, Vector2Int to, bool exits,
+        CritterColor exitColor, Vector2Int exitFromCell, TiltDirection exitDir)
+    {
+        this.critter      = critter;
+        this.from         = from;
+        this.to           = to;
+        this.exits        = exits;
+        this.exitColor    = exitColor;
+        this.exitFromCell = exitFromCell;
+        this.exitDir      = exitDir;
     }
 }
 
@@ -68,12 +84,15 @@ public class SlideResolver
 
             bool exits;
             CritterColor exitColor;
-            Vector2Int finalCell = Slide(critter, from, dir, cols, rows, occupied, out exits, out exitColor);
+            TiltDirection exitDir;
+            Vector2Int finalCell = Slide(critter, from, dir, cols, rows, occupied, out exits, out exitColor, out exitDir);
 
             if (exits)
             {
                 occupied.Remove(from);
-                moves.Add(new SlideMove(critter, from, finalCell, true, exitColor));
+                // finalCell is the last on-board cell before the gate; exitDir is the travel
+                // direction there (may differ from `dir` if an arrow redirected the critter).
+                moves.Add(new SlideMove(critter, from, finalCell, true, exitColor, finalCell, exitDir));
             }
             else if (finalCell != from)
             {
@@ -99,10 +118,12 @@ public class SlideResolver
         int rows,
         Dictionary<Vector2Int, CritterPiece> occupied,
         out bool exits,
-        out CritterColor exitColor)
+        out CritterColor exitColor,
+        out TiltDirection exitDir)
     {
         exits = false;
         exitColor = default;
+        exitDir = dir;
 
         Vector2Int current = from;
         TiltDirection moveDir = dir;
@@ -157,6 +178,7 @@ public class SlideResolver
                 {
                     exits = true;
                     exitColor = critter.Color;
+                    exitDir = moveDir; // actual travel direction at the gate (post-redirect)
                 }
                 // else: solid wall or non-matching gate → stop at current cell.
                 break;

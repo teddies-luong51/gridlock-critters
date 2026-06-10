@@ -26,7 +26,7 @@ public class LevelCompleteController : MonoBehaviour
         {
             GameManager.Instance.OnStateChanged += HandleStateChanged;
         }
-        HandleStateChanged(GameManager.Instance != null ? GameManager.Instance.State : GameState.Boot);
+        HandleStateChanged(GameManager.Instance != null ? GameManager.Instance.CurrentState : GameState.Boot);
     }
 
     private void OnDisable()
@@ -49,8 +49,9 @@ public class LevelCompleteController : MonoBehaviour
     {
         int current = CurrentIndex();
 
-        // Record completion (dedup + unlock next) on show.
-        LevelProgressManager.Instance.MarkCompleted(current);
+        // Record completion (dedup + unlock next) BEFORE configuring the next-level button.
+        if (SaveManager.Instance != null) SaveManager.Instance.MarkCompleted(current);
+        if (LevelProgressManager.Instance != null) LevelProgressManager.Instance.NotifyProgressChanged();
 
         if (titleLabel != null)
         {

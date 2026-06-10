@@ -61,6 +61,12 @@ public class LevelProgressManager : MonoBehaviour
         SaveManager.Instance.MarkCompleted(n);
         OnProgressChanged?.Invoke();
     }
+
+    /// <summary>Broadcasts that progression changed (e.g. when completion was recorded elsewhere).</summary>
+    public void NotifyProgressChanged()
+    {
+        OnProgressChanged?.Invoke();
+    }
 }
 
 /// <summary>Visual/interaction state of a level button.</summary>

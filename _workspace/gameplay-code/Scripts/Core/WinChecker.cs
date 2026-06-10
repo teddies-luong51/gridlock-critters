@@ -55,6 +55,6 @@ public class WinChecker : MonoBehaviour
     {
         OnWin?.Invoke();
         if (GameManager.Instance != null)
-            GameManager.Instance.ChangeState(GameManager.GameState.LevelComplete);
+            GameManager.Instance.ChangeState(GameState.LevelComplete);
     }
 }
